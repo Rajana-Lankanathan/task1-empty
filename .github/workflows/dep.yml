@@ -1,23 +1,20 @@
-on: [push]
+name: Upload Website
+
+on:
+  push:
+    branches:
+    - main
 
 jobs:
-  mirror_with_sftp:
-    name: deploy
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: FTP Deployer
-        uses: sand4rt/ftp-deployer@v1.4
-        with:
-          sftp: true
-          host: ${{ secrets.SERVER_HOST }}
-          port: 22
-          username: ${{ secrets.SERVER_USERNAME }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          remote_folder: ${{ secrets.SERVER_PATH }}
-          local_folder: '.'
-          cleanup: false
-          include: '[ "*", "**/*" ]'
-          exclude: '["node_modules/**", "_secret.php", ".github/**", ".git/**", "*.env"]'
-          pasive: true
+    - uses: actions/checkout@master
+    - uses: jakejarvis/s3-sync-action@master
+      with:
+        args: --acl public-read --follow-symlinks --delete --exclude '.git*/*'
+      env:
+        AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
